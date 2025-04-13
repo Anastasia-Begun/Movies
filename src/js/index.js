@@ -2,7 +2,7 @@ import { global } from "./global.js";
 import { getData } from "./api/getData.js";
 import { generateTemplate } from "../js/utils/generateTemplate.js";
 import { tabsComponent } from "./components/tabs.js";
-// import { search } from "./api/searchServices.js";
+import { search } from "./api/searchServices.js";
 
 /**
  * Инициализирует функции в зависимости от страницы.
@@ -19,10 +19,10 @@ function init() {
       tabsComponent();
 
       break;
-    // case "/search.html":
-    //   // Вызываем функцию для выполнения поиска
-    //   search();
-    //   break;
+    case "/search.html":
+      // Вызываем функцию для выполнения поиска
+      search();
+      break;
   }
 }
 
@@ -36,24 +36,26 @@ document.addEventListener("DOMContentLoaded", init);
 export const processFilmsAndShowsData = async (endpoint) => {
   const { results } = await getData(endpoint);
 
-  // Определяем контейнер в зависимости от эндпоинта
-  let containerSelector;
+  // Определяем контейнер и тип контента в зависимости от эндпоинта
+  const resultsConfig = {
+    "movie/now_playing": {
+      container: ".swiper-wrapper",
+    },
+    "movie/popular": {
+      container: ".popular-movies",
+    },
+    "tv/popular": {
+      container: ".popular-tv",
+      type: "tv",
+    },
+  };
 
-  switch (endpoint) {
-    case "movie/now_playing":
-      containerSelector = ".swiper-wrapper";
-      break;
-    case "movie/popular":
-      containerSelector = ".popular-movies";
-      break;
-    default:
-      containerSelector = ".popular-tv";
-  }
+  const config = resultsConfig[endpoint];
 
   // Генерируем шаблон
   generateTemplate(results, {
-    containerSelector,
-    // слайдер применяется только, если endpoint === "movie/now_playing"
+    containerSelector: config.container,
     useSlider: endpoint === "movie/now_playing",
+    type: config.type,
   });
 };
