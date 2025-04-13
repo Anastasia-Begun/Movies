@@ -6,22 +6,21 @@ import { generateTemplateForDetails } from "./generateTemplate";
  * @param {Event} event - Событие клика.
  */
 export const handleCardClickAndGetData = async (event) => {
-  // Получаем id карточки
-  const id = event?.currentTarget?.getAttribute("data-id");
+  const card = event?.currentTarget;
+  const id = card?.getAttribute("data-id");
+  const type = card?.getAttribute("data-type");
 
-  // Запрос на получение фильма по id
-  const data = await getData(`movie/${id}`);
+  // Запрос на получение данных по id и типу
+  const data = await getData(`${type}/${id}`);
 
-  // Генерируем детальную информацию по карточке.
+  // Генерируем детальную информацию по карточке
   generateTemplateForDetails(data, { containerSelector: "#sidebar-list" });
 
   // Открываем сайдбар
-  const sidebarInfo = new Sidebar(`[data-id="${id}"]`)?.open();
+  new Sidebar(`[data-id="${id}"]`)?.open();
 };
 
-/**
- * Функция для прикрепления обработчика события клика к карточкам фильмов/сериалов.
- */
+// Функция для прикрепления обработчика события клика к карточкам.
 export const attachListeners = () => {
   const cards = document.querySelectorAll("[data-id]");
 
