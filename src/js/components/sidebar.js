@@ -8,11 +8,16 @@ export class Sidebar {
     this.sidebar = document.querySelector("#sidebar");
     this.openBtn = document.querySelector(openBtnSelector);
     this.closeBtn = this.sidebar.querySelector("#close-sidebar");
+    this.reviewForm = this.sidebar.querySelector("#review-form");
+    this.nameInput = this.sidebar.querySelector("#name-input");
+    this.reviewInput = this.sidebar.querySelector("#review-input");
+    this.reviewMessages = this.sidebar.querySelector("#review-messages");
 
     // Привязываем обработчики событий к экземпляру класса
     this.handleOpenClick = this.handleOpenClick.bind(this);
     this.handleCloseClick = this.handleCloseClick.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleReviewSubmit = this.handleReviewSubmit.bind(this); // Привязываем обработчик отправки отзыва
     this.sidebar.addEventListener(
       "click",
       this.closeOnBackdropClick.bind(this)
@@ -29,8 +34,23 @@ export class Sidebar {
    */
   open() {
     this.sidebar.showModal();
+    this.loadReviews();
   }
 
+  loadReviews() {
+    // Загрузка существующих отзывов из localStorage
+    const storedReviews = JSON.parse(localStorage.getItem("reviews")) || [];
+
+    // Очищаем текущие отзывы перед загрузкой новых
+    this.reviewMessages.innerHTML = "";
+
+    // Проходимся по каждому отзыву и добавляем его в интерфейс
+    storedReviews.forEach((review) => {
+      const reviewElement = document.createElement("p");
+      reviewElement.textContent = `${review.name}: ${review.review}`; // Отображаем имя и текст отзыва
+      this.reviewMessages.appendChild(reviewElement);
+    });
+  }
   /**
    * Закрывает сайдбар.
    */
@@ -40,12 +60,11 @@ export class Sidebar {
 
   /**
    * Добавляет обработчик события клика на сайдбар для закрытия.
-   * Закрытие панели при клике на зайдний фон
+   * Закрытие панели при клике на задний фон
    * @param {MouseEvent} event - Событие клика мыши.
    */
   closeOnBackdropClick(event) {
     const isClickedOnBackdrop = event.target === this.sidebar;
-
     if (isClickedOnBackdrop) {
       this.close();
     }
@@ -58,6 +77,7 @@ export class Sidebar {
     this.openBtn.addEventListener("click", this.handleOpenClick);
     this.closeBtn.addEventListener("click", this.handleCloseClick);
     this.sidebar.addEventListener("keydown", this.handleKeyDown);
+    this.reviewForm.addEventListener("submit", this.handleReviewSubmit);
   }
 
   /**
@@ -67,6 +87,7 @@ export class Sidebar {
     this.openBtn.removeEventListener("click", this.handleOpenClick);
     this.closeBtn.removeEventListener("click", this.handleCloseClick);
     this.sidebar.removeEventListener("keydown", this.handleKeyDown);
+    this.reviewForm.removeEventListener("submit", this.handleReviewSubmit);
   }
 
   /**
@@ -90,6 +111,37 @@ export class Sidebar {
   handleKeyDown(event) {
     if (event.key === "Escape") {
       this.handleCloseClick();
+    }
+  }
+
+  /**
+   * Обработчик отправки формы отзывов.
+   * @param {Event} event - Событие отправки формы.
+   */
+  handleReviewSubmit(event) {
+    event.preventDefault();
+
+    const nameText = this.nameInput.value.trim(); 
+    const reviewText = this.reviewInput.value.trim();
+
+    if (nameText && reviewText) {
+      // Создаем объект отзыва с правильным доступом к свойству
+      const review = { name: nameText, review: reviewText };
+
+      // Получаем отзывы из localStorage
+      const storedReviews = JSON.parse(localStorage.getItem("reviews")) || [];
+      // Добавляем новый отзыв в массив
+      storedReviews.push(review);
+      // Сохраняем обновленный массив в localStorage
+      localStorage.setItem("reviews", JSON.stringify(storedReviews));
+
+      this.nameInput.value = "";
+      this.reviewInput.value = "";
+
+      // загружаем отзывы снова, чтобы обновить интерфейс
+      this.loadReviews();
+    } else {
+      alert("Пожалуйста, введите ваше имя и отзыв."); // Уведомление, если одно из полей пустое
     }
   }
 }
